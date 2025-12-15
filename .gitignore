@@ -20,19 +20,6 @@ ENV/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Results and output files (keep structure, ignore generated files)
-results/*.png
-results/*.txt
-results/*.csv
-results/figures/*.png
-results/reports/*.md
-results/reports/*.csv
-results/reports/*.txt
-
-# Data files (keep the folder, but ignore large data files if needed)
-# Uncomment if you want to exclude the data CSV from version control:
-# data/*.csv
-
 # OS files
 .DS_Store
 Thumbs.db

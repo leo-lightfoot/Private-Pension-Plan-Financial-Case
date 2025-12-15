@@ -1,14 +1,6 @@
 """
-Configuration file for Pension Portfolio Optimization Project
+Configuration file for Pension Portfolio Optimization Project as per Case
 
-Updated per project clarifications:
- - Client invests €250,000 in 2025, started working at age 30 in 2010,
-   is 45 in 2025, retires at 68.
- - Salary progression for ages 30/35/40/45 set from the case statement.
- - PKV escalation: +3% every 3 years (step).
- - Canonical data file: data/new_data.csv (no temp CSV).
- - Default Monte Carlo simulations: 10,000.
- - Simplified tax treatment documented.
 """
 
 # ============================================================================
@@ -107,8 +99,8 @@ GLIDE_PATH_BREAKDOWN = {
 # SIMULATION PARAMETERS (default reduced to 10k)
 # ============================================================================
 SIMULATION = {
-    'n_simulations': 10_000,
-    'n_simulations_stress': 10_000,
+    'n_simulations': 100_000,
+    'n_simulations_stress': 100_000,
     'trading_days_per_year': 252,
 }
 
