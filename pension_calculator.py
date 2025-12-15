@@ -4,7 +4,7 @@ German Statutory Pension Calculator
 
 import numpy as np
 import pandas as pd
-from config_file import SALARY, GERMAN_PENSION, CLIENT, PKV
+from config_file import SALARY, GERMAN_PENSION, CLIENT, PKV, CAREER
 
 class GermanPensionCalculator:
     """
@@ -13,17 +13,14 @@ class GermanPensionCalculator:
 
     def __init__(self):
         """Initialize with parameters from config."""
-        # Age at career start (case)
-        self.start_age = 30  # started at age 30 in SALARY['age_30_year']
-        self.start_year = SALARY.get('age_30_year', 2010)  # 2010 per case
+        self.start_age = CAREER['start_age']
+        self.start_year = CAREER['start_year']
         self.current_age = CLIENT['current_age']
         self.retirement_age = CLIENT['retirement_age']
 
-        # Salary structure (case-driven)
         self.salary_by_age = SALARY['salary_by_age']
         self.inflation_rate = SALARY['inflation_rate']
 
-        # Pension parameters
         self.durchschnittsentgelt_2025 = GERMAN_PENSION['durchschnittsentgelt_2025']
         self.rentenwert_2025 = GERMAN_PENSION['aktueller_rentenwert_2025']
         self.pension_inflation = GERMAN_PENSION['inflation_rate']
@@ -33,32 +30,19 @@ class GermanPensionCalculator:
         return self.start_age + (year - self.start_year)
 
     def calculate_salary_for_year(self, year):
-        """
-        Calculate gross salary for a given calendar year using:
-          - exact table values at anchor ages (30,35,40,45)
-          - linear interpolation between anchor ages
-          - inflation-only growth after age 45
-
-        Args:
-            year (int): Calendar year
-
-        Returns:
-            float: Gross annual salary in EUR
-        """
+        """Calculate gross salary: anchors use exact values, interpolate between, inflate after age 45."""
         years_since_start = year - self.start_year
         if years_since_start < 0:
             return 0.0
 
         age = self._age_from_year(year)
 
-        # If exact anchor age available, return it
         if age in self.salary_by_age:
             return float(self.salary_by_age[age])
 
-        # Sort anchor ages
         anchors = sorted(self.salary_by_age.keys())
 
-        # If age is between two anchors, do linear interpolation
+        # Linear interpolation between anchors
         for a0, a1 in zip(anchors[:-1], anchors[1:]):
             if a0 < age < a1:
                 s0 = self.salary_by_age[a0]
@@ -66,21 +50,17 @@ class GermanPensionCalculator:
                 weight = (age - a0) / (a1 - a0)
                 return float(s0 * (1 - weight) + s1 * weight)
 
-        # If age is below first anchor (shouldn't happen since start_age == first anchor), fallback
         if age < anchors[0]:
             return float(self.salary_by_age[anchors[0]])
 
-        # If age is above last anchor ( >45 ), grow with inflation from age 45 salary
+        # After last anchor age, grow with inflation only
         last_anchor_age = anchors[-1]
         last_salary = float(self.salary_by_age[last_anchor_age])
         years_after_anchor = age - last_anchor_age
         return float(last_salary * (1 + self.inflation_rate) ** years_after_anchor)
 
     def calculate_durchschnittsentgelt(self, year):
-        """
-        Calculate German average earnings (Durchschnittsentgelt) for a given year.
-        Grows with pension inflation from 2025 baseline.
-        """
+        """Calculate Durchschnittsentgelt for given year (grows with pension inflation from 2025)."""
         if year < 2025:
             years_before_2025 = 2025 - year
             return self.durchschnittsentgelt_2025 / (1 + self.pension_inflation) ** years_before_2025

@@ -1,7 +1,5 @@
 """
-Master Analysis Script 
-Runs the complete pension portfolio analysis pipeline with stress testing integrated.
-
+Master Analysis Script - Complete pension portfolio analysis pipeline with stress testing.
 """
 
 import os
@@ -11,7 +9,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-# Import all modules
 from config_file import DATA_FILES, CLIENT, OUTPUT, SIMULATION
 from pension_calculator import GermanPensionCalculator
 from gap_analysis import RetirementGapAnalyzer
@@ -41,22 +38,16 @@ def load_etf_data():
     print("📂 Loading historical ETF data...")
 
     try:
-        # Read CSV with encoding to handle BOM
         data = pd.read_csv(DATA_FILES['etf_returns'], encoding='utf-8-sig')
-
-        # Clean column names (strip trailing spaces)
         data.columns = data.columns.str.strip()
-
-        # Parse dates with dayfirst=True for dd-mm-yyyy format
         data['Dates'] = pd.to_datetime(data['Dates'], format=DATA_FILES['date_format'], dayfirst=True)
         data.set_index('Dates', inplace=True)
 
-        # Convert percentages to decimals and clean data
         data = data.replace('#N/A N/A', np.nan)
         data = data.apply(pd.to_numeric, errors='coerce')
         data = data.dropna(axis=1, how='all')
 
-        returns_data = data / 100
+        returns_data = data / 100  # Convert to decimals
 
         print(f"Loaded data for {len(returns_data.columns)} ETFs")
         print(f"Date range: {returns_data.index.min().strftime('%Y-%m-%d')} to {returns_data.index.max().strftime('%Y-%m-%d')}")
@@ -241,7 +232,7 @@ def run_stress_tests(returns_data):
     simulator_crash.print_summary(
         results_crash,
         initial_value=250000,
-        filename='reports/stress_crash_summary.txt'
+        filename=os.path.join(OUTPUT['reports_dir'], 'stress_crash_summary.txt')
     )
 
     print(f"   Crash scenario saved to {crash_plot_path}")
@@ -278,7 +269,7 @@ def run_stress_tests(returns_data):
     simulator_stag.print_summary(
         results_stag,
         initial_value=250000,
-        filename='reports/stress_stagflation_summary.txt'
+        filename=os.path.join(OUTPUT['reports_dir'], 'stress_stagflation_summary.txt')
     )
 
     print(f"   Stagflation scenario saved to {stag_plot_path}")

@@ -8,54 +8,44 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
-from config_file import DATA_FILES  # canonical path
+from config_file import DATA_FILES, SIMULATION
+from plotting_config import COLOR_SCHEME, PLOT_SIZES, apply_common_formatting
 
 class InvestmentMetricsCalculator:
 
     def __init__(self, returns_data: pd.DataFrame = None, csv_file_path: str = None):
-        """
-        Initialize calculator with either a DataFrame or CSV file path.
-
-        Args:
-            returns_data: DataFrame with returns (already in decimal format, indexed by date)
-            csv_file_path: Path to CSV file (used if returns_data is None)
-        """
+        """Initialize with DataFrame (decimal returns) or CSV file path."""
         if returns_data is not None:
-            # Data provided directly as DataFrame (assumed to be in decimal format)
             self.returns_data = returns_data
-            self.data = returns_data * 100  # Store percentage version for compatibility
             self.csv_file_path = None
-            print(f"Data loaded: {len(self.data.columns)} instruments, {len(self.data)} observations")
-            if len(self.data) > 0:
-                print(f"Date range: {self.data.index.min()} to {self.data.index.max()}")
+            print(f"Data loaded: {len(self.returns_data.columns)} instruments, {len(self.returns_data)} observations")
+            if len(self.returns_data) > 0:
+                print(f"Date range: {self.returns_data.index.min()} to {self.returns_data.index.max()}")
         else:
-            # Load from CSV file
             if csv_file_path is None:
                 csv_file_path = DATA_FILES['etf_returns']
             self.csv_file_path = csv_file_path
-            self.data = None
             self.returns_data = None
             self._load_data()
 
     def _load_data(self):
         try:
-            # Read CSV with encoding to handle BOM
-            self.data = pd.read_csv(self.csv_file_path, encoding='utf-8-sig')
+            data = pd.read_csv(self.csv_file_path, encoding='utf-8-sig')
 
-            # Parse dates flexibly - try format from config; fallback to dayfirst
             try:
-                self.data['Dates'] = pd.to_datetime(self.data['Dates'], format=DATA_FILES.get('date_format'), dayfirst=True)
+                data['Dates'] = pd.to_datetime(data['Dates'], format=DATA_FILES.get('date_format'), dayfirst=True)
             except Exception:
-                self.data['Dates'] = pd.to_datetime(self.data['Dates'], dayfirst=True, errors='coerce')
+                data['Dates'] = pd.to_datetime(data['Dates'], dayfirst=True, errors='coerce')
 
-            self.data.set_index('Dates', inplace=True)
-            self.data = self.data.replace('#N/A N/A', np.nan)
-            self.data = self.data.apply(pd.to_numeric, errors='coerce')
-            self.data = self.data.dropna(axis=1, how='all')
-            self.returns_data = self.data / 100
+            data.set_index('Dates', inplace=True)
+            data = data.replace('#N/A N/A', np.nan)
+            data = data.apply(pd.to_numeric, errors='coerce')
+            data = data.dropna(axis=1, how='all')
 
-            print(f"Data loaded: {len(self.data.columns)} instruments, {len(self.data)} observations")
-            print(f"Date range: {self.data.index.min()} to {self.data.index.max()}")
+            self.returns_data = data / 100  # Convert to decimals
+
+            print(f"Data loaded: {len(self.returns_data.columns)} instruments, {len(self.returns_data)} observations")
+            print(f"Date range: {self.returns_data.index.min()} to {self.returns_data.index.max()}")
 
         except Exception as e:
             print(f"Error loading data: {e}")
@@ -64,13 +54,13 @@ class InvestmentMetricsCalculator:
     def calculate_average_returns(self, annualized=True):
         avg_returns = self.returns_data.mean(skipna=True)
         if annualized:
-            avg_returns = avg_returns * 252
+            avg_returns = avg_returns * SIMULATION['trading_days_per_year']
         return avg_returns
 
     def calculate_volatility(self, annualized=True):
         volatility = self.returns_data.std(skipna=True)
         if annualized:
-            volatility = volatility * np.sqrt(252)
+            volatility = volatility * np.sqrt(SIMULATION['trading_days_per_year'])
         return volatility
 
     def calculate_correlation_matrix(self):
@@ -79,7 +69,7 @@ class InvestmentMetricsCalculator:
     def calculate_covariance_matrix(self, annualized=True):
         cov_matrix = self.returns_data.cov()
         if annualized:
-            cov_matrix = cov_matrix * 252
+            cov_matrix = cov_matrix * SIMULATION['trading_days_per_year']
         return cov_matrix
 
     def calculate_var(self, confidence_level=0.05):
@@ -121,10 +111,10 @@ class InvestmentMetricsCalculator:
             'correlation_matrix': correlation_matrix,
             'covariance_matrix': covariance_matrix,
             'data_info': {
-                'start_date': self.data.index.min(),
-                'end_date': self.data.index.max(),
-                'num_observations': len(self.data),
-                'num_instruments': len(self.data.columns)
+                'start_date': self.returns_data.index.min(),
+                'end_date': self.returns_data.index.max(),
+                'num_observations': len(self.returns_data),
+                'num_instruments': len(self.returns_data.columns)
             }
         }
 
@@ -132,11 +122,11 @@ class InvestmentMetricsCalculator:
 
     def plot_correlation_heatmap(self, save_path='correlation_heatmap.png'):
         correlation_matrix = self.calculate_correlation_matrix()
-        plt.figure(figsize=(12, 10))
-        sns.heatmap(correlation_matrix, annot=True, cmap='RdYlBu_r', center=0, fmt='.3f', square=True)
-        plt.title('Correlation Matrix')
+        fig, ax = plt.subplots(figsize=PLOT_SIZES['square'])
+        sns.heatmap(correlation_matrix, annot=True, cmap='RdYlBu_r', center=0, fmt='.3f', square=True, ax=ax)
+        apply_common_formatting(ax, title='Asset Correlation Matrix')
         plt.tight_layout()
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.savefig(save_path, bbox_inches='tight')
         plt.close()
         print(f"Correlation heatmap saved to {save_path}")
 
@@ -144,17 +134,15 @@ class InvestmentMetricsCalculator:
         avg_returns = self.calculate_average_returns(annualized=True) * 100
         volatility = self.calculate_volatility(annualized=True) * 100
 
-        plt.figure(figsize=(12, 8))
-        plt.scatter(volatility, avg_returns, s=100, alpha=0.7)
+        fig, ax = plt.subplots(figsize=PLOT_SIZES['large'])
+        ax.scatter(volatility, avg_returns, s=100, alpha=0.7, color=COLOR_SCHEME['base'])
 
         for instrument in avg_returns.index:
-            plt.annotate(instrument, (volatility[instrument], avg_returns[instrument]),
-                         xytext=(5, 5), textcoords='offset points', fontsize=9, ha='left')
+            ax.annotate(instrument, (volatility[instrument], avg_returns[instrument]),
+                       xytext=(5, 5), textcoords='offset points', fontsize=9, ha='left')
 
-        plt.xlabel('Annual Volatility (%)')
-        plt.ylabel('Average Annual Return (%)')
-        plt.title('Risk-Return Profile')
-        plt.grid(True, alpha=0.3)
+        apply_common_formatting(ax, title='Risk-Return Profile',
+                              xlabel='Annual Volatility (%)', ylabel='Average Annual Return (%)')
         plt.tight_layout()
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()

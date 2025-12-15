@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import os
-from config_file import ASSET_CLASSES
+from config_file import ASSET_CLASSES, SIMULATION
+from plotting_config import COLOR_SCHEME, PLOT_SIZES
 
 class IIDAssetPortfolioSimulator:
     def __init__(self, returns_data: pd.DataFrame = None, data_file='portfolio_data.csv', output_dir="results"):
@@ -19,14 +20,13 @@ class IIDAssetPortfolioSimulator:
         os.makedirs(output_dir, exist_ok=True)
 
         if returns_data is not None:
-            # Data provided directly as DataFrame (assumed to be in decimal format)
+            # Data provided directly as DataFrame (decimal format: 0.08 = 8% return)
             # Strip column names to remove any trailing spaces
             returns_data.columns = returns_data.columns.str.strip()
 
-            self.data = returns_data * 100  # Store percentage version for compatibility
             self.assets = list(returns_data.columns)
 
-            # Convert to returns dict (decimals)
+            # Store returns dict (decimals)
             self.asset_data = {}
             for asset in self.assets:
                 series = returns_data[asset].dropna()
@@ -36,17 +36,17 @@ class IIDAssetPortfolioSimulator:
             print(f"Assets: {', '.join(self.assets)}")
         else:
             # Load from CSV file
-            self.data = pd.read_csv(data_file)
-            self.data.columns = self.data.columns.str.strip()
-            self.data['Dates'] = pd.to_datetime(self.data['Dates'], format='mixed', dayfirst=True)
+            data = pd.read_csv(data_file)
+            data.columns = data.columns.str.strip()
+            data['Dates'] = pd.to_datetime(data['Dates'], format='mixed', dayfirst=True)
 
             # Keep only valid asset columns
-            self.assets = [col for col in self.data.columns if col != 'Dates' and not col.startswith('Unnamed')]
+            self.assets = [col for col in data.columns if col != 'Dates' and not col.startswith('Unnamed')]
 
-            # Convert to returns (decimals)
+            # Convert from percentages (CSV format) to decimals (internal standard)
             self.asset_data = {}
             for asset in self.assets:
-                series = pd.to_numeric(self.data[asset], errors='coerce').dropna() / 100
+                series = pd.to_numeric(data[asset], errors='coerce').dropna() / 100
                 self.asset_data[asset] = series
 
             print(f"✅ Loaded data for {len(self.assets)} assets")
@@ -64,7 +64,8 @@ class IIDAssetPortfolioSimulator:
         - Equities ~6% p.a., Bonds ~2% p.a., Gold ~5% p.a.
         """
         params = {}
-        daily_global_drag = global_drag / 252
+        trading_days = SIMULATION['trading_days_per_year']
+        daily_global_drag = global_drag / trading_days
 
         for asset, w in allocations.items():
             if w > 0:
@@ -72,13 +73,13 @@ class IIDAssetPortfolioSimulator:
 
                 if stagflation:
                     if asset in self.equity_assets:
-                        mu_daily = 0.06 / 252   # ~6% annual
+                        mu_daily = 0.06 / trading_days   # ~6% annual
                         sigma_daily = rets.std()
                     elif asset in self.bond_assets:
-                        mu_daily = 0.02 / 252   # ~2% annual
+                        mu_daily = 0.02 / trading_days   # ~2% annual
                         sigma_daily = rets.std()
                     elif asset in self.gold_assets:
-                        mu_daily = 0.05 / 252   # ~5% annual
+                        mu_daily = 0.05 / trading_days   # ~5% annual
                         sigma_daily = rets.std()
                     else:
                         mu_daily = rets.mean()
@@ -102,19 +103,21 @@ class IIDAssetPortfolioSimulator:
         """
         print(f"🔄 Starting simulation with {n_sims:,} paths...")
         start_time = time.time()
-        
+
+        trading_days = SIMULATION['trading_days_per_year']
         params = self.estimate_asset_parameters(allocations, global_drag=global_drag, stagflation=stagflation)
         results = np.zeros((n_sims, years))
-        
+
         for sim in range(n_sims):
             asset_values = {a: initial_value * w for a, (_, _, w) in params.items()}
             yearly_values = []
-            
+
             for y in range(years):
                 for asset, (mu_d, sigma_d, w) in params.items():
-                    # simulate 252 daily returns
-                    daily_rets = np.random.normal(mu_d, sigma_d, 252)
-                    growth_factor = np.prod(1 + daily_rets)
+                    # simulate daily returns for one year
+                    daily_rets = np.random.normal(mu_d, sigma_d, trading_days)
+                    # Use log-space for numerical stability
+                    growth_factor = np.exp(np.sum(np.log1p(daily_rets)))
                     asset_values[asset] *= growth_factor
                 
                 portfolio_value = sum(asset_values.values())
@@ -134,51 +137,49 @@ class IIDAssetPortfolioSimulator:
 
     def plot_simulation(self, results, years=23, title="Portfolio Projection", filename="simulation.png"):
         """Plot simulation outcomes and save to file."""
-        plt.figure(figsize=(12, 6))
-        
-        for i in range(min(50, results.shape[0])):  # plot up to 50 paths
-            plt.plot(range(1, years+1), results[i], alpha=0.2, color='blue')
-        
+        fig, ax = plt.subplots(figsize=PLOT_SIZES['medium'])
+
+        for i in range(min(50, results.shape[0])):
+            ax.plot(range(1, years+1), results[i], alpha=0.2, color=COLOR_SCHEME['percentiles'])
+
         median = np.percentile(results, 50, axis=0)
         p10 = np.percentile(results, 10, axis=0)
         p90 = np.percentile(results, 90, axis=0)
-        
-        plt.plot(range(1, years+1), median, color='red', linewidth=2, label='Median')
-        plt.fill_between(range(1, years+1), p10, p90, color='blue', alpha=0.2, label='10th–90th Percentile')
-        
-        plt.title(title, fontsize=14, fontweight='bold')
-        plt.xlabel("Years")
-        plt.ylabel("Portfolio Value (€)")
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'€{x:,.0f}'))
-        
+
+        ax.plot(range(1, years+1), median, color=COLOR_SCHEME['median'], linewidth=2, label='Median')
+        ax.fill_between(range(1, years+1), p10, p90, color=COLOR_SCHEME['base'], alpha=0.2, label='10th–90th Percentile')
+
+        ax.set_title(title, fontsize=14, fontweight='bold')
+        ax.set_xlabel("Years")
+        ax.set_ylabel("Portfolio Value (€)")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'€{x:,.0f}'))
+
         plt.tight_layout()
-        filepath = os.path.join(self.output_dir, filename)
+        # Use filename as-is if it contains path separator, otherwise join with output_dir
+        filepath = filename if os.path.sep in filename else os.path.join(self.output_dir, filename)
         plt.savefig(filepath, dpi=300)
         plt.close()
         print(f"📁 Projection plot saved to {filepath}")
 
     def plot_annual_return_histogram(self, annual_returns, var_95, filename="annual_returns_hist.png"):
         """Plot histogram of annual returns with VaR cutoff."""
-        plt.figure(figsize=(10, 6))
-        plt.hist(annual_returns, bins=50, color="skyblue", edgecolor="black", alpha=0.7)
+        fig, ax = plt.subplots(figsize=PLOT_SIZES['medium'])
+        ax.hist(annual_returns, bins=50, color=COLOR_SCHEME['base'], edgecolor="black", alpha=0.7)
 
-        # VaR line
-        plt.axvline(var_95, color="red", linestyle="--", linewidth=2, label=f"VaR 95% = {var_95:.2%}")
+        ax.axvline(var_95, color=COLOR_SCHEME['p10'], linestyle="--", linewidth=2, label=f"VaR 95% = {var_95:.2%}")
+        ax.axvspan(annual_returns.min(), var_95, color=COLOR_SCHEME['p10'], alpha=0.2, label="Worst 5% outcomes")
 
-        # Shade left tail (CVaR region)
-        plt.axvspan(annual_returns.min(), var_95, color="red", alpha=0.2, label="Worst 5% outcomes")
-
-        plt.title("Distribution of Annual Portfolio Returns", fontsize=14, fontweight="bold")
-        plt.xlabel("Annual Return")
-        plt.ylabel("Frequency")
-        plt.legend()
-        plt.grid(True, alpha=0.3)
+        ax.set_title("Distribution of Annual Portfolio Returns", fontsize=14, fontweight="bold")
+        ax.set_xlabel("Annual Return")
+        ax.set_ylabel("Frequency")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
 
         plt.tight_layout()
-        filepath = os.path.join(self.output_dir, filename)
-        # Create directory if it doesn't exist
+        # Use filename as-is if it contains path separator, otherwise join with output_dir
+        filepath = filename if os.path.sep in filename else os.path.join(self.output_dir, filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         plt.savefig(filepath, dpi=300)
         plt.close()
@@ -228,8 +229,8 @@ class IIDAssetPortfolioSimulator:
 
         print(summary_str)
 
-        filepath = os.path.join(self.output_dir, filename)
-        # Create directory if it doesn't exist
+        # Use filename as-is if it contains path separator, otherwise join with output_dir
+        filepath = filename if os.path.sep in filename else os.path.join(self.output_dir, filename)
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w") as f:
             f.write(summary_str)

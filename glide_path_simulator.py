@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import os
 from config_file import (GLIDE_PATH, GLIDE_PATH_BREAKDOWN, SIMULATION,
                    DRAGS, ASSET_CLASSES, CLIENT, TAX_RATES, OUTPUT, DATA_FILES)
+from plotting_config import COLOR_SCHEME
 
 
 class GlidePathSimulator:
@@ -138,16 +139,16 @@ class GlidePathSimulator:
             # Get target allocation for this age
             target_allocation = self.get_allocation_for_age(current_age)
 
-            # Simulate 252 trading days for this year
+            # Simulate trading days for this year
             for asset, weight in allocation.items():
                 if weight > 0 and asset in self.asset_params:
                     mu_daily, sigma_daily = self.asset_params[asset]
 
-                    # Generate 252 daily returns
+                    # Generate daily returns for one year
                     daily_returns = np.random.normal(mu_daily, sigma_daily, SIMULATION['trading_days_per_year'])
 
-                    # Apply cumulative growth
-                    growth_factor = np.prod(1 + daily_returns)
+                    # Apply cumulative growth (log-space for numerical stability)
+                    growth_factor = np.exp(np.sum(np.log1p(daily_returns)))
                     asset_values[asset] *= growth_factor
 
             # Calculate total portfolio value after year
@@ -280,9 +281,9 @@ class GlidePathSimulator:
         p75 = np.percentile(results, 75, axis=0)
         p90 = np.percentile(results, 90, axis=0)
 
-        ax1.plot(years, median, 'r-', linewidth=2.5, label='Median (50th percentile)')
-        ax1.fill_between(years, p10, p90, alpha=0.3, color='blue', label='10th-90th percentile')
-        ax1.fill_between(years, p25, p75, alpha=0.4, color='darkblue', label='25th-75th percentile')
+        ax1.plot(years, median, color=COLOR_SCHEME['median'], linewidth=2.5, label='Median (50th percentile)')
+        ax1.fill_between(years, p10, p90, alpha=0.3, color=COLOR_SCHEME['base'], label='10th-90th percentile')
+        ax1.fill_between(years, p25, p75, alpha=0.4, color=COLOR_SCHEME['base'], label='25th-75th percentile')
 
         # Add initial investment line
         ax1.axhline(y=self.initial_investment, color='gray', linestyle='--',
@@ -312,14 +313,14 @@ class GlidePathSimulator:
             gold_pcts.append(gold * 100)
 
         ax2.fill_between(range(len(ages)), 0, equity_pcts,
-                        alpha=0.7, color='#2E86AB', label='Equities')
+                        alpha=0.7, color=COLOR_SCHEME['equity'], label='Equities')
         ax2.fill_between(range(len(ages)), equity_pcts,
                         [e + b for e, b in zip(equity_pcts, bond_pcts)],
-                        alpha=0.7, color='#A23B72', label='Bonds')
+                        alpha=0.7, color=COLOR_SCHEME['bonds'], label='Bonds')
         ax2.fill_between(range(len(ages)),
                         [e + b for e, b in zip(equity_pcts, bond_pcts)],
                         [e + b + g for e, b, g in zip(equity_pcts, bond_pcts, gold_pcts)],
-                        alpha=0.7, color='#F18F01', label='Gold')
+                        alpha=0.7, color=COLOR_SCHEME['gold'], label='Gold')
 
         ax2.set_xlabel('Age', fontsize=11)
         ax2.set_ylabel('Allocation (%)', fontsize=11)

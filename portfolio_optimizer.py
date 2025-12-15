@@ -8,7 +8,7 @@ import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from datetime import datetime
-from config_file import DATA_FILES  # <-- canonical data path
+from config_file import DATA_FILES, PORTFOLIO_CONSTRAINTS, SIMULATION
 
 class PortfolioOptimizer:
     """
@@ -30,27 +30,28 @@ class PortfolioOptimizer:
         self.optimal_portfolio = None
 
         if returns_data is not None:
-            # Data provided directly as DataFrame (assumed to be in decimal format)
+            # Data provided directly as DataFrame (decimal format: 0.08 = 8% return)
             self.returns_data = returns_data
-            self.data = returns_data * 100  # Store percentage version for compatibility
             self.csv_file_path = None
 
-            # Only include assets with sufficient data (at least 1000 observations)
+            # Filter assets with sufficient data (from config)
+            min_obs = PORTFOLIO_CONSTRAINTS['min_observations']
             valid_assets = []
             for col in self.returns_data.columns:
-                if self.returns_data[col].count() >= 1000:
+                if self.returns_data[col].count() >= min_obs:
                     valid_assets.append(col)
 
             self.returns_data = self.returns_data[valid_assets]
 
             # Calculate annualized mean returns and covariance matrix
-            self.mean_returns = self.returns_data.mean() * 252  # Annualized
-            self.cov_matrix = self.returns_data.cov() * 252     # Annualized
+            trading_days = SIMULATION['trading_days_per_year']
+            self.mean_returns = self.returns_data.mean() * trading_days
+            self.cov_matrix = self.returns_data.cov() * trading_days
 
             print(f"Portfolio optimization data loaded successfully!")
-            print(f"Assets included: {len(self.returns_data.columns)}")
-            if len(self.data.index) > 0:
-                print(f"Date range: {self.data.index.min().strftime('%Y-%m-%d')} to {self.data.index.max().strftime('%Y-%m-%d')}")
+            print(f"Assets included: {len(self.returns_data.columns)} (min {min_obs} observations)")
+            if len(self.returns_data.index) > 0:
+                print(f"Date range: {self.returns_data.index.min().strftime('%Y-%m-%d')} to {self.returns_data.index.max().strftime('%Y-%m-%d')}")
         else:
             # Load from CSV file
             if csv_file_path is None:
@@ -66,40 +67,42 @@ class PortfolioOptimizer:
         """Load and prepare the data."""
         try:
             # Load the CSV file with encoding to handle BOM
-            self.data = pd.read_csv(self.csv_file_path, encoding='utf-8-sig')
+            data = pd.read_csv(self.csv_file_path, encoding='utf-8-sig')
 
             # Try to parse dates using config date_format; fall back to flexible parsing
             try:
-                self.data['Dates'] = pd.to_datetime(self.data['Dates'], format=DATA_FILES.get('date_format'), dayfirst=True)
+                data['Dates'] = pd.to_datetime(data['Dates'], format=DATA_FILES.get('date_format'), dayfirst=True)
             except Exception:
-                self.data['Dates'] = pd.to_datetime(self.data['Dates'], dayfirst=True, errors='coerce')
+                data['Dates'] = pd.to_datetime(data['Dates'], dayfirst=True, errors='coerce')
 
-            self.data.set_index('Dates', inplace=True)
+            data.set_index('Dates', inplace=True)
 
             # Replace missing values and convert to numeric
-            self.data = self.data.replace('#N/A N/A', np.nan)
-            self.data = self.data.apply(pd.to_numeric, errors='coerce')
-            self.data = self.data.dropna(axis=1, how='all')
+            data = data.replace('#N/A N/A', np.nan)
+            data = data.apply(pd.to_numeric, errors='coerce')
+            data = data.dropna(axis=1, how='all')
 
-            # Convert to decimal returns (input expected in percent)
-            self.returns_data = self.data / 100
+            # Convert from percentages (CSV format) to decimals (internal standard)
+            self.returns_data = data / 100
 
-            # Only include assets with sufficient data (at least 1000 observations)
+            # Filter assets with sufficient data (from config)
+            min_obs = PORTFOLIO_CONSTRAINTS['min_observations']
             valid_assets = []
             for col in self.returns_data.columns:
-                if self.returns_data[col].count() >= 1000:
+                if self.returns_data[col].count() >= min_obs:
                     valid_assets.append(col)
 
             self.returns_data = self.returns_data[valid_assets]
 
             # Calculate annualized mean returns and covariance matrix
-            self.mean_returns = self.returns_data.mean() * 252  # Annualized
-            self.cov_matrix = self.returns_data.cov() * 252     # Annualized
+            trading_days = SIMULATION['trading_days_per_year']
+            self.mean_returns = self.returns_data.mean() * trading_days
+            self.cov_matrix = self.returns_data.cov() * trading_days
 
             print(f"Portfolio optimization data loaded successfully!")
-            print(f"Assets included: {len(self.returns_data.columns)}")
-            if len(self.data.index) > 0:
-                print(f"Date range: {self.data.index.min().strftime('%Y-%m-%d')} to {self.data.index.max().strftime('%Y-%m-%d')}")
+            print(f"Assets included: {len(self.returns_data.columns)} (min {min_obs} observations)")
+            if len(self.returns_data.index) > 0:
+                print(f"Date range: {self.returns_data.index.min().strftime('%Y-%m-%d')} to {self.returns_data.index.max().strftime('%Y-%m-%d')}")
         except Exception as e:
             print(f"Error loading data: {e}")
             self.data = None
@@ -137,16 +140,18 @@ class PortfolioOptimizer:
         """
         return -self.portfolio_stats(weights)[2]
 
-    def optimize_portfolio(self, min_return=0.05):
+    def optimize_portfolio(self, min_return=None):
         """
         Find the optimal portfolio weights that maximize Sharpe ratio subject to minimum return constraint.
 
         Args:
-            min_return (float): Minimum required annual return (default: 5%)
+            min_return (float): Minimum required annual return (default: from config)
 
         Returns:
             dict: Optimal portfolio results
         """
+        if min_return is None:
+            min_return = PORTFOLIO_CONSTRAINTS['min_return_constraint']
         if self.mean_returns is None or self.cov_matrix is None:
             print("No valid returns data available for optimization.")
             return None
@@ -194,9 +199,28 @@ class PortfolioOptimizer:
             }
 
             print(f"✅ Portfolio optimization completed successfully with {min_return*100:.1f}% minimum return!")
+            print(f"   Achieved return: {portfolio_return*100:.2f}%, Volatility: {portfolio_vol*100:.2f}%, Sharpe: {sharpe_ratio:.3f}")
             return self.optimal_portfolio
         else:
-            print(f"❌ Optimization failed! Unable to achieve {min_return*100:.1f}% minimum return.")
+            # Enhanced error reporting
+            print(f"\n❌ Optimization failed! Unable to achieve {min_return*100:.1f}% minimum return.")
+            print(f"   Optimization status: {result.message}")
+
+            # Calculate what would be achievable with equal weights
+            equal_weights = np.array([1 / num_assets] * num_assets)
+            equal_return, equal_vol, equal_sharpe = self.portfolio_stats(equal_weights)
+
+            print(f"\n   📊 Diagnostic Information:")
+            print(f"   - Minimum return required: {min_return*100:.1f}%")
+            print(f"   - Best single asset return: {max_possible_return*100:.2f}% ({self.mean_returns.idxmax()})")
+            print(f"   - Equal-weight portfolio return: {equal_return*100:.2f}%")
+            print(f"   - Number of assets: {num_assets}")
+
+            if min_return > equal_return:
+                print(f"\n   💡 Suggestion: Lower min_return_constraint to {equal_return*100:.1f}% or below")
+            else:
+                print(f"\n   💡 Suggestion: Constraints may be conflicting or data may have issues")
+
             return None
 
     def get_asset_names(self):
@@ -362,8 +386,8 @@ class PortfolioOptimizer:
 This optimal portfolio was constructed using:
 - **Methodology**: Markowitz Mean-Variance Optimization
 - **Objective**: Maximize Sharpe Ratio subject to minimum return constraint
-- **Constraints**: Long-only positions (no short selling), Minimum 5% annual return
-- **Data Period**: {self.data.index.min().strftime('%Y')} to {self.data.index.max().strftime('%Y')}
+- **Constraints**: Long-only positions (no short selling), Minimum {PORTFOLIO_CONSTRAINTS['min_return_constraint']*100:.0f}% annual return
+- **Data Period**: {self.returns_data.index.min().strftime('%Y')} to {self.returns_data.index.max().strftime('%Y')}
 
 **Disclaimer**: Past performance does not guarantee future results. This analysis is for educational purposes only.
 
@@ -389,13 +413,13 @@ def main():
     print("\n1. Loading data...")
     optimizer = PortfolioOptimizer()  # will use DATA_FILES['etf_returns'] by default
 
-    if optimizer.data is None:
+    if optimizer.returns_data is None:
         print("❌ Failed to load data.")
         return
 
-    # Step 2: Optimize portfolio with 5% minimum return
-    print("\n2. Optimizing portfolio with 5% minimum return...")
-    optimal_portfolio = optimizer.optimize_portfolio(min_return=0.05)
+    # Step 2: Optimize portfolio (uses min return from config)
+    print(f"\n2. Optimizing portfolio with {PORTFOLIO_CONSTRAINTS['min_return_constraint']*100:.1f}% minimum return...")
+    optimal_portfolio = optimizer.optimize_portfolio()
 
     if optimal_portfolio is None:
         print("❌ Portfolio optimization failed.")

@@ -31,6 +31,14 @@ SALARY = {
     'age_30_year': 2010,                  # explicit: age 30 occurred in 2010
 }
 
+# ============================================================================
+# CAREER TIMELINE (centralized assumptions)
+# ============================================================================
+CAREER = {
+    'start_age': 30,                      # career start age
+    'start_year': 2010,                   # career start year (from SALARY['age_30_year'])
+}
+
 GERMAN_PENSION = {
     'durchschnittsentgelt_2025': 50_493,  # German average earnings (2025)
     'aktueller_rentenwert_2025': 771.84,  # pension value per point (2025)
@@ -99,8 +107,8 @@ GLIDE_PATH_BREAKDOWN = {
 # SIMULATION PARAMETERS (default reduced to 10k)
 # ============================================================================
 SIMULATION = {
-    'n_simulations': 100_000,
-    'n_simulations_stress': 100_000,
+    'n_simulations': 10_000,
+    'n_simulations_stress': 10_000,
     'trading_days_per_year': 252,
 }
 
@@ -138,6 +146,16 @@ RISK = {
     'risk_free_rate': 0.0277,
     'var_confidence': 0.95,
     'cvar_confidence': 0.95,
+}
+
+# ============================================================================
+# PORTFOLIO OPTIMIZATION CONSTRAINTS
+# ============================================================================
+PORTFOLIO_CONSTRAINTS = {
+    'min_observations': 1000,              # minimum data points required for optimization
+    'min_return_constraint': 0.05,         # minimum portfolio return (5% annual)
+    'max_asset_weight': 1.0,               # maximum weight per asset (100%)
+    'allow_short_selling': False,          # no short positions allowed
 }
 
 # ============================================================================
