@@ -3,74 +3,107 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import os
+from config_file import ASSET_CLASSES
 
 class IIDAssetPortfolioSimulator:
-    def __init__(self, data_file='portfolio_data.csv', output_dir="results"):
-        """Initialize with historical data and output folder."""
-        self.data = pd.read_csv(data_file)
-        self.data.columns = self.data.columns.str.strip()
-        self.data['Dates'] = pd.to_datetime(self.data['Dates'], format='%d-%m-%Y')
-        
-        # Keep only valid asset columns
-        self.assets = [col for col in self.data.columns if col != 'Dates' and not col.startswith('Unnamed')]
-        
-        # Convert to returns (decimals)
-        self.asset_data = {}
-        for asset in self.assets:
-            series = pd.to_numeric(self.data[asset], errors='coerce').dropna() / 100
-            self.asset_data[asset] = series
-        
-        # Ensure output directory exists
+    def __init__(self, returns_data: pd.DataFrame = None, data_file='portfolio_data.csv', output_dir="results"):
+        """
+        Initialize with historical data and output folder.
+
+        Args:
+            returns_data: DataFrame with returns (already in decimal format, indexed by date)
+            data_file: Path to CSV file (used if returns_data is None)
+            output_dir: Directory for output files
+        """
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
-        
-        print(f"✅ Loaded data for {len(self.assets)} assets")
-        print(f"Assets: {', '.join(self.assets)}")
 
-        # Define drags (annualized)
-        self.equity_drag = 0.03
-        self.gold_drag = 0.025
+        if returns_data is not None:
+            # Data provided directly as DataFrame (assumed to be in decimal format)
+            # Strip column names to remove any trailing spaces
+            returns_data.columns = returns_data.columns.str.strip()
 
-        # Tag assets by type
-        self.equity_assets = {
-            "Core_MSCI_World_ETF",
-            "MSCI_Emerging_Market_ETF",
-            "Global_Infrastructure_ETF",
-            "Developed_Markets_Property_Yield_ETF",
-            "DJGlobal_Real_Estate_ETF"
-        }
-        self.gold_assets = {"Invesco_Physical_Gold_ETF"}
+            self.data = returns_data * 100  # Store percentage version for compatibility
+            self.assets = list(returns_data.columns)
 
-    def estimate_asset_parameters(self, allocations):
-        """Estimate μ and σ for each asset separately (daily stats).
-           Apply 3% drag for equities and 2.5% drag for gold."""
+            # Convert to returns dict (decimals)
+            self.asset_data = {}
+            for asset in self.assets:
+                series = returns_data[asset].dropna()
+                self.asset_data[asset] = series
+
+            print(f"✅ Loaded data for {len(self.assets)} assets")
+            print(f"Assets: {', '.join(self.assets)}")
+        else:
+            # Load from CSV file
+            self.data = pd.read_csv(data_file)
+            self.data.columns = self.data.columns.str.strip()
+            self.data['Dates'] = pd.to_datetime(self.data['Dates'], format='mixed', dayfirst=True)
+
+            # Keep only valid asset columns
+            self.assets = [col for col in self.data.columns if col != 'Dates' and not col.startswith('Unnamed')]
+
+            # Convert to returns (decimals)
+            self.asset_data = {}
+            for asset in self.assets:
+                series = pd.to_numeric(self.data[asset], errors='coerce').dropna() / 100
+                self.asset_data[asset] = series
+
+            print(f"✅ Loaded data for {len(self.assets)} assets")
+            print(f"Assets: {', '.join(self.assets)}")
+
+        # Tag assets by type - import from config for consistency
+        self.equity_assets = set(ASSET_CLASSES['equity'])
+        self.bond_assets = set(ASSET_CLASSES['bonds'])
+        self.gold_assets = set(ASSET_CLASSES['gold'])
+
+    def estimate_asset_parameters(self, allocations, global_drag=0.002, stagflation=False):
+        """
+        Estimate μ and σ for each asset separately (daily stats).
+        If stagflation=True, override means with stressed assumptions:
+        - Equities ~6% p.a., Bonds ~2% p.a., Gold ~5% p.a.
+        """
         params = {}
+        daily_global_drag = global_drag / 252
 
         for asset, w in allocations.items():
             if w > 0:
                 rets = self.asset_data[asset]
-                mu_daily = rets.mean()
-                sigma_daily = rets.std()
 
-                # Apply drags
-                if asset in self.equity_assets:
-                    mu_daily -= self.equity_drag / 252
-                elif asset in self.gold_assets:
-                    mu_daily -= self.gold_drag / 252
+                if stagflation:
+                    if asset in self.equity_assets:
+                        mu_daily = 0.06 / 252   # ~6% annual
+                        sigma_daily = rets.std()
+                    elif asset in self.bond_assets:
+                        mu_daily = 0.02 / 252   # ~2% annual
+                        sigma_daily = rets.std()
+                    elif asset in self.gold_assets:
+                        mu_daily = 0.05 / 252   # ~5% annual
+                        sigma_daily = rets.std()
+                    else:
+                        mu_daily = rets.mean()
+                        sigma_daily = rets.std()
+                else:
+                    mu_daily = rets.mean()
+                    sigma_daily = rets.std()
+
+                # Apply global drag
+                mu_daily -= daily_global_drag
 
                 params[asset] = (mu_daily, sigma_daily, w)
                 print(f"📊 {asset}: μ_daily={mu_daily:.5f}, σ_daily={sigma_daily:.5f}, weight={w:.2f}")
         return params
 
-    def simulate_paths(self, allocations, initial_value=250000, years=23, n_sims=1000):
+    def simulate_paths(self, allocations, initial_value=250000, years=23, n_sims=1000, 
+                       global_drag=0.002, stagflation=False):
         """
         Simulate each asset as i.i.d. Normal (daily), then combine into portfolio.
-        Applies equity and gold drags.
+        stagflation=True applies equity/bond/gold stressed assumptions.
         """
         print(f"🔄 Starting simulation with {n_sims:,} paths...")
         start_time = time.time()
         
-        params = self.estimate_asset_parameters(allocations)
+        params = self.estimate_asset_parameters(allocations, global_drag=global_drag, stagflation=stagflation)
         results = np.zeros((n_sims, years))
         
         for sim in range(n_sims):
@@ -95,7 +128,8 @@ class IIDAssetPortfolioSimulator:
         end_time = time.time()
         print(f"✅ Simulation completed in {end_time - start_time:.2f} seconds")
         print(f"📊 Generated {n_sims:,} simulation paths over {years} years")
-        print(f"📊 Applied drags: Equities {self.equity_drag:.2%}, Gold {self.gold_drag:.2%}")
+        if stagflation:
+            print("⚠️ Stagflation Scenario Applied: Equities ~6%, Bonds ~2%, Gold ~5%")
         return results
 
     def plot_simulation(self, results, years=23, title="Portfolio Projection", filename="simulation.png"):
@@ -129,21 +163,23 @@ class IIDAssetPortfolioSimulator:
         """Plot histogram of annual returns with VaR cutoff."""
         plt.figure(figsize=(10, 6))
         plt.hist(annual_returns, bins=50, color="skyblue", edgecolor="black", alpha=0.7)
-        
+
         # VaR line
         plt.axvline(var_95, color="red", linestyle="--", linewidth=2, label=f"VaR 95% = {var_95:.2%}")
-        
+
         # Shade left tail (CVaR region)
         plt.axvspan(annual_returns.min(), var_95, color="red", alpha=0.2, label="Worst 5% outcomes")
-        
+
         plt.title("Distribution of Annual Portfolio Returns", fontsize=14, fontweight="bold")
         plt.xlabel("Annual Return")
         plt.ylabel("Frequency")
         plt.legend()
         plt.grid(True, alpha=0.3)
-        
+
         plt.tight_layout()
         filepath = os.path.join(self.output_dir, filename)
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         plt.savefig(filepath, dpi=300)
         plt.close()
         print(f"📁 Annual returns histogram saved to {filepath}")
@@ -193,21 +229,24 @@ class IIDAssetPortfolioSimulator:
         print(summary_str)
 
         filepath = os.path.join(self.output_dir, filename)
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w") as f:
             f.write(summary_str)
         print(f"📁 Summary saved to {filepath}")
 
-        # Save annual return histogram
-        self.plot_annual_return_histogram(annual_returns, var_95, filename="annual_returns_hist.png")
+        # Save annual return histogram in same directory as summary
+        histogram_filename = os.path.join(os.path.dirname(filename), "annual_returns_hist.png")
+        self.plot_annual_return_histogram(annual_returns, var_95, filename=histogram_filename)
 
 
 def main():
-    print("PORTFOLIO SIMULATOR (Asset-by-Asset IID Normal Daily Returns + Equity/Gold Drags + Annual VaR)")
+    print("PORTFOLIO SIMULATOR (Adjusted Stagflation Scenario: Equities ~6%)")
     print("="*40)
     print("Person: 45 years old")
     print("Retirement: 68 years old")
     print("Investment horizon: 23 years")
-    print("Features: Equities drag 3%, Gold drag 2.5%, VaR and CVaR included")
+    print("Features: Equities ~6%, Bonds ~2%, Gold ~5%, historical volatilities")
     print("="*40)
     
     simulator = IIDAssetPortfolioSimulator()
@@ -225,9 +264,10 @@ def main():
     }
     
     results = simulator.simulate_paths(
-        allocations, initial_value=250000, years=23, n_sims=100000
+        allocations, initial_value=250000, years=23, n_sims=20000, 
+        global_drag=0.002, stagflation=True
     )
-    simulator.plot_simulation(results, years=23, title="Portfolio Projection with Equity/Gold Drags", filename="simulation.png")
+    simulator.plot_simulation(results, years=23, title="Portfolio Projection – Adjusted Stagflation (Equities ~6%)", filename="simulation.png")
     simulator.print_summary(results, initial_value=250000, filename="summary.txt")
 
 

@@ -1,55 +1,91 @@
+"""
+Investment metrics calculator (minimal edits for config consistency)
+
+Edits:
+- Default CSV path uses DATA_FILES['etf_returns'] from config_file if csv_file_path is None.
+- Date parsing uses config date format / dayfirst parsing; encoding 'utf-8-sig' preserved.
+- No change to calculation logic (annualization, VaR, Sharpe).
+"""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
+from config_file import DATA_FILES  # canonical path
 
 class InvestmentMetricsCalculator:
-    
-    def __init__(self, csv_file_path):
-        self.csv_file_path = csv_file_path
-        self.data = None
-        self.returns_data = None
-        self._load_data()
-    
+
+    def __init__(self, returns_data: pd.DataFrame = None, csv_file_path: str = None):
+        """
+        Initialize calculator with either a DataFrame or CSV file path.
+
+        Args:
+            returns_data: DataFrame with returns (already in decimal format, indexed by date)
+            csv_file_path: Path to CSV file (used if returns_data is None)
+        """
+        if returns_data is not None:
+            # Data provided directly as DataFrame (assumed to be in decimal format)
+            self.returns_data = returns_data
+            self.data = returns_data * 100  # Store percentage version for compatibility
+            self.csv_file_path = None
+            print(f"Data loaded: {len(self.data.columns)} instruments, {len(self.data)} observations")
+            if len(self.data) > 0:
+                print(f"Date range: {self.data.index.min()} to {self.data.index.max()}")
+        else:
+            # Load from CSV file
+            if csv_file_path is None:
+                csv_file_path = DATA_FILES['etf_returns']
+            self.csv_file_path = csv_file_path
+            self.data = None
+            self.returns_data = None
+            self._load_data()
+
     def _load_data(self):
         try:
-            self.data = pd.read_csv(self.csv_file_path)
-            self.data['Dates'] = pd.to_datetime(self.data['Dates'], dayfirst=True)
+            # Read CSV with encoding to handle BOM
+            self.data = pd.read_csv(self.csv_file_path, encoding='utf-8-sig')
+
+            # Parse dates flexibly - try format from config; fallback to dayfirst
+            try:
+                self.data['Dates'] = pd.to_datetime(self.data['Dates'], format=DATA_FILES.get('date_format'), dayfirst=True)
+            except Exception:
+                self.data['Dates'] = pd.to_datetime(self.data['Dates'], dayfirst=True, errors='coerce')
+
             self.data.set_index('Dates', inplace=True)
             self.data = self.data.replace('#N/A N/A', np.nan)
             self.data = self.data.apply(pd.to_numeric, errors='coerce')
             self.data = self.data.dropna(axis=1, how='all')
             self.returns_data = self.data / 100
-            
+
             print(f"Data loaded: {len(self.data.columns)} instruments, {len(self.data)} observations")
             print(f"Date range: {self.data.index.min()} to {self.data.index.max()}")
-            
+
         except Exception as e:
             print(f"Error loading data: {e}")
-            return None
-    
+            raise
+
     def calculate_average_returns(self, annualized=True):
         avg_returns = self.returns_data.mean(skipna=True)
         if annualized:
             avg_returns = avg_returns * 252
         return avg_returns
-    
+
     def calculate_volatility(self, annualized=True):
         volatility = self.returns_data.std(skipna=True)
         if annualized:
             volatility = volatility * np.sqrt(252)
         return volatility
-    
+
     def calculate_correlation_matrix(self):
         return self.returns_data.corr()
-    
+
     def calculate_covariance_matrix(self, annualized=True):
         cov_matrix = self.returns_data.cov()
         if annualized:
             cov_matrix = cov_matrix * 252
         return cov_matrix
-    
+
     def calculate_var(self, confidence_level=0.05):
         var_results = {}
         for col in self.returns_data.columns:
@@ -59,12 +95,12 @@ class InvestmentMetricsCalculator:
             else:
                 var_results[col] = np.nan
         return pd.Series(var_results)
-    
+
     def calculate_sharpe_ratio(self, risk_free_rate=0.0277):
         avg_returns = self.calculate_average_returns(annualized=True)
         volatility = self.calculate_volatility(annualized=True)
         return (avg_returns - risk_free_rate) / volatility
-    
+
     def generate_summary_report(self):
         avg_returns = self.calculate_average_returns(annualized=True)
         volatility = self.calculate_volatility(annualized=True)
@@ -73,7 +109,7 @@ class InvestmentMetricsCalculator:
         var_99 = self.calculate_var(confidence_level=0.01)
         correlation_matrix = self.calculate_correlation_matrix()
         covariance_matrix = self.calculate_covariance_matrix(annualized=True)
-        
+
         summary_df = pd.DataFrame({
             'Annual Return (%)': avg_returns * 100,
             'Volatility (%)': volatility * 100,
@@ -81,9 +117,9 @@ class InvestmentMetricsCalculator:
             'VaR 95% (Daily %)': var_95 * 100,
             'VaR 99% (Daily %)': var_99 * 100
         })
-        
+
         summary_df = summary_df.sort_values('Annual Return (%)', ascending=False)
-        
+
         results = {
             'summary_statistics': summary_df,
             'correlation_matrix': correlation_matrix,
@@ -95,9 +131,9 @@ class InvestmentMetricsCalculator:
                 'num_instruments': len(self.data.columns)
             }
         }
-        
+
         return results
-    
+
     def plot_correlation_heatmap(self, save_path='correlation_heatmap.png'):
         correlation_matrix = self.calculate_correlation_matrix()
         plt.figure(figsize=(12, 10))
@@ -107,18 +143,18 @@ class InvestmentMetricsCalculator:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"Correlation heatmap saved to {save_path}")
-    
+
     def plot_returns_and_volatility(self, save_path='risk_return_chart.png'):
         avg_returns = self.calculate_average_returns(annualized=True) * 100
         volatility = self.calculate_volatility(annualized=True) * 100
-        
+
         plt.figure(figsize=(12, 8))
         plt.scatter(volatility, avg_returns, s=100, alpha=0.7)
-        
+
         for instrument in avg_returns.index:
             plt.annotate(instrument, (volatility[instrument], avg_returns[instrument]),
-                        xytext=(5, 5), textcoords='offset points', fontsize=9, ha='left')
-        
+                         xytext=(5, 5), textcoords='offset points', fontsize=9, ha='left')
+
         plt.xlabel('Annual Volatility (%)')
         plt.ylabel('Average Annual Return (%)')
         plt.title('Risk-Return Profile')
@@ -127,10 +163,10 @@ class InvestmentMetricsCalculator:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"Risk-return chart saved to {save_path}")
-    
+
     def save_results_to_markdown(self, filename='investment_metrics_report.md'):
         results = self.generate_summary_report()
-        
+
         data_availability = []
         for col in results['summary_statistics'].index:
             valid_data = self.returns_data[col].dropna()
@@ -144,9 +180,9 @@ class InvestmentMetricsCalculator:
                     'End Date': last_date.strftime('%Y'),
                     'Observations': f"{obs_count:,}"
                 })
-        
+
         data_avail_df = pd.DataFrame(data_availability)
-        
+
         markdown_content = f"""# Investment Metrics Report
 
 Generated: {datetime.now().strftime('%B %d, %Y at %H:%M')}
@@ -195,38 +231,42 @@ Generated: {datetime.now().strftime('%B %d, %Y at %H:%M')}
 | Conservative | {results['summary_statistics'].sort_values('Volatility (%)', ascending=True).index[0]} | Lowest volatility ({results['summary_statistics']['Volatility (%)'].min():.1f}%) |
 
 """
-        
+
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(markdown_content)
-        
+
         print(f"Report saved to {filename}")
 
 
 def main():
     print("Investment Metrics Analysis")
     print("-" * 40)
-    
-    calculator = InvestmentMetricsCalculator('new_data.csv')
-    
+
+    calculator = InvestmentMetricsCalculator()
+
     if calculator.data is None:
         print("Failed to load data.")
         return
-    
+
     print("Calculating metrics...")
     results = calculator.generate_summary_report()
-    
+
     print("Creating visualizations...")
-    calculator.plot_correlation_heatmap()
-    calculator.plot_returns_and_volatility()
-    
+    calculator.plot_correlation_heatmap(
+        save_path='results/figures/correlation_heatmap.png'
+    )
+    calculator.plot_returns_and_volatility(
+        save_path='results/figures/risk_return_chart.png'
+    )
+
     print("Generating report...")
-    calculator.save_results_to_markdown('investment_metrics_report.md')
-    
+    calculator.save_results_to_markdown(filename='results/reports/investment_metrics_report.md')
+
     summary_stats = results['summary_statistics']
     print(f"\nBest Performer: {summary_stats.index[0]} ({summary_stats.iloc[0, 0]:.2f}%)")
     print(f"Best Risk-Adjusted: {summary_stats.sort_values('Sharpe Ratio', ascending=False).index[0]} (Sharpe: {summary_stats['Sharpe Ratio'].max():.3f})")
     print(f"Lowest Risk: {summary_stats.sort_values('Volatility (%)', ascending=True).index[0]} ({summary_stats['Volatility (%)'].min():.2f}% vol)")
-    
+
     print("\nAnalysis completed!")
 
 
