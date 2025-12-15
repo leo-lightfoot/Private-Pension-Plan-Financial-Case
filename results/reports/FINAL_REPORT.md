@@ -1,6 +1,6 @@
 # Private Pension Portfolio - Final Report
 
-**Generated:** December 15, 2025 at 23:57
+**Generated:** December 16, 2025 at 00:37
 
 ---
 
@@ -18,9 +18,9 @@
 - **Required Portfolio (4% rule):** €675,070
 
 ### Projected Outcomes
-- **Median Final Value:** €1,422,819
-- **10th Percentile:** €979,344
-- **90th Percentile:** €2,075,443
+- **Median Final Value:** €1,416,687
+- **10th Percentile:** €973,167
+- **90th Percentile:** €2,070,807
 - **Success Rate:** 99.5% (meeting €675,070 target)
 
 ---
@@ -51,12 +51,12 @@
 
 ### Probability Analysis
 - **Meeting Target (€675,070):** 99.5%
-- **Exceeding Target by 20%:** 97.4%
-- **Falling Short by 20%:** 0.0%
+- **Exceeding Target by 20%:** 97.2%
+- **Falling Short by 20%:** 0.1%
 
 ### Downside Protection
-- **10th Percentile Outcome:** €979,344
-- **Minimum Viable:** Even worst outcomes provide ~145.1% of target
+- **10th Percentile Outcome:** €973,167
+- **Minimum Viable:** Even worst outcomes provide ~144.2% of target
 
 ---
 

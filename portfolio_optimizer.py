@@ -199,28 +199,9 @@ class PortfolioOptimizer:
             }
 
             print(f"✅ Portfolio optimization completed successfully with {min_return*100:.1f}% minimum return!")
-            print(f"   Achieved return: {portfolio_return*100:.2f}%, Volatility: {portfolio_vol*100:.2f}%, Sharpe: {sharpe_ratio:.3f}")
             return self.optimal_portfolio
         else:
-            # Enhanced error reporting
-            print(f"\n❌ Optimization failed! Unable to achieve {min_return*100:.1f}% minimum return.")
-            print(f"   Optimization status: {result.message}")
-
-            # Calculate what would be achievable with equal weights
-            equal_weights = np.array([1 / num_assets] * num_assets)
-            equal_return, equal_vol, equal_sharpe = self.portfolio_stats(equal_weights)
-
-            print(f"\n   📊 Diagnostic Information:")
-            print(f"   - Minimum return required: {min_return*100:.1f}%")
-            print(f"   - Best single asset return: {max_possible_return*100:.2f}% ({self.mean_returns.idxmax()})")
-            print(f"   - Equal-weight portfolio return: {equal_return*100:.2f}%")
-            print(f"   - Number of assets: {num_assets}")
-
-            if min_return > equal_return:
-                print(f"\n   💡 Suggestion: Lower min_return_constraint to {equal_return*100:.1f}% or below")
-            else:
-                print(f"\n   💡 Suggestion: Constraints may be conflicting or data may have issues")
-
+            print(f"❌ Optimization failed! Unable to achieve {min_return*100:.1f}% minimum return.")
             return None
 
     def get_asset_names(self):

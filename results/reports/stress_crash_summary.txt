@@ -5,13 +5,13 @@ ASSET-BY-ASSET IID NORMAL SIMULATION SUMMARY
 Number of Simulations: 10,000
 Number of Years: 23
 Initial Value: €250,000.00
-Median Final Value: €2,160,947.90
-10th Percentile Final Value: €1,201,268.45
-90th Percentile Final Value: €4,417,484.91
+Median Final Value: €2,158,961.28
+10th Percentile Final Value: €1,200,218.48
+90th Percentile Final Value: €4,366,497.88
 Median CAGR: 9.83%
-Mean CAGR: 10.05%
-Annualized Volatility: 10.65%
+Mean CAGR: 10.01%
+Annualized Volatility: 10.61%
 Sharpe Ratio (rf=2.77%): 0.68
-Annual VaR (95%): -5.13%
-Annual CVaR (95%): -8.94%
+Annual VaR (95%): -5.12%
+Annual CVaR (95%): -8.95%
 ============================================================

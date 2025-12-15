@@ -107,7 +107,7 @@ GLIDE_PATH_BREAKDOWN = {
 # SIMULATION PARAMETERS (default reduced to 10k)
 # ============================================================================
 SIMULATION = {
-    'n_simulations': 10_000,
+    'n_simulations': 50_000,
     'n_simulations_stress': 10_000,
     'trading_days_per_year': 252,
 }
