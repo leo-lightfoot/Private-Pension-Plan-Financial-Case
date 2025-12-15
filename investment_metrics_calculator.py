@@ -1,10 +1,6 @@
 """
 Investment metrics calculator (minimal edits for config consistency)
 
-Edits:
-- Default CSV path uses DATA_FILES['etf_returns'] from config_file if csv_file_path is None.
-- Date parsing uses config date format / dayfirst parsing; encoding 'utf-8-sig' preserved.
-- No change to calculation logic (annualization, VaR, Sharpe).
 """
 
 import pandas as pd

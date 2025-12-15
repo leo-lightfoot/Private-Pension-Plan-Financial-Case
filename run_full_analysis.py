@@ -1,11 +1,7 @@
 """
-Master Analysis Script - CORRECTED VERSION
+Master Analysis Script 
 Runs the complete pension portfolio analysis pipeline with stress testing integrated.
 
-Changes from original:
-1. Integrated stress_tests.py scenarios
-2. Fixed to work with corrected pension calculator
-3. Added proper error handling for missing data
 """
 
 import os

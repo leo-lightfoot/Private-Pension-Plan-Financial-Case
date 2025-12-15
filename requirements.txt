@@ -7,14 +7,3 @@ scipy>=1.10.0
 matplotlib>=3.7.0
 seaborn>=0.12.0
 
-# Optional: For better performance with large datasets
-# numba>=0.57.0
-
-# Optional: For Jupyter notebook support (if you want to create notebooks)
-# jupyter>=1.0.0
-# ipython>=8.12.0
-
-# Development tools (optional)
-# pytest>=7.3.0
-# black>=23.3.0
-# flake8>=6.0.0

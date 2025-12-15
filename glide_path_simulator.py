@@ -1,9 +1,6 @@
 """
 Glide Path Portfolio Simulator (minimal edits for config/data consistency)
 
-Edits:
-- In main(): read CSV using DATA_FILES['etf_returns'] and parse dates with date_format/dayfirst.
-- The GlidePathSimulator class and simulation logic remain the same.
 """
 
 import numpy as np

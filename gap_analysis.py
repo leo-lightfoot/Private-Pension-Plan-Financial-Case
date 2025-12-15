@@ -1,11 +1,5 @@
 """
-Retirement Income Gap Analysis (updated)
-
-Key changes:
-- Compute birth year from CLIENT['starting_year'] and CLIENT['current_age'].
-- Compute retirement_year as birth_year + CLIENT['retirement_age'] (consistent calendar).
-- Use GermanPensionCalculator.calculate_salary_for_year to get the final gross salary.
-- Keep PKV step logic consistent with config (uses PKV['increase_frequency_years']).
+Retirement Income Gap Analysis 
 """
 
 import numpy as np

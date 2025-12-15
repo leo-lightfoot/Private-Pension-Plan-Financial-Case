@@ -1,7 +1,5 @@
 """
-German Statutory Pension Calculator (updated salary profile)
-- Uses case-provided salary_by_age table and linear interpolation between anchors.
-- After age 45 salary grows only with inflation (SALARY['inflation_rate']).
+German Statutory Pension Calculator 
 """
 
 import numpy as np
