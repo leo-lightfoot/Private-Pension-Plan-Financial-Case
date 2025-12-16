@@ -14,8 +14,6 @@ A comprehensive Python-based financial analysis tool for retirement planning in 
 - [Methodology](#methodology)
 - [Output Files](#output-files)
 - [Website](#website)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
