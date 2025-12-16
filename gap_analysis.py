@@ -192,7 +192,7 @@ class RetirementGapAnalyzer:
 
         # Final salary and deductions
         salary_details = self.calculate_final_net_salary()
-        print("\n💰 Final Working Year (Age {}, Year {}):".format(CLIENT['retirement_age'] - 1, salary_details['final_working_year']))
+        print("\nFinal Working Year (Age {}, Year {}):".format(CLIENT['retirement_age'] - 1, salary_details['final_working_year']))
         print(f"   Gross salary: €{salary_details['gross_salary']:,.0f}")
         print(f"   - Social security: €{salary_details['social_security']:,.0f}")
         print(f"   - Income tax: €{salary_details['income_tax']:,.0f}")
@@ -201,25 +201,25 @@ class RetirementGapAnalyzer:
 
         # Needs and pension
         needs = self.calculate_retirement_needs()
-        print("\n🎯 Retirement Income Needs (Age {}, Year {}):".format(CLIENT['retirement_age'], self.retirement_year))
+        print("\nRetirement Income Needs (Age {}, Year {}):".format(CLIENT['retirement_age'], self.retirement_year))
         print(f"   90% of final net salary: €{needs['income_replacement_90pct']:,.0f}")
         print(f"   + PKV in retirement: €{needs['pkv_retirement']:,.0f}")
         print(f"   Total annual needs: €{needs['total_annual_needs']:,.0f}")
 
         gap = self.calculate_pension_gap()
         pension = gap['breakdown']['pension']
-        print("\n🏛️  German Statutory Pension:")
+        print("\nGerman Statutory Pension:")
         print(f"   Gross pension: €{pension['gross_pension']:,.0f}")
         print(f"   - Pension tax: €{pension['pension_tax']:,.0f}")
         print(f"   - PKV: €{pension['pkv_annual']:,.0f}")
         print(f"   Net pension: €{gap['net_statutory_pension']:,.0f}")
 
-        print("\n⚠️  RETIREMENT GAP:")
+        print("\nRETIREMENT GAP:")
         print(f"   Annual gap: €{gap['annual_gap']:,.0f}")
         print(f"   Monthly gap: €{gap['monthly_gap']:,.0f}")
 
         req = self.calculate_required_portfolio_value()
-        print("\n📊 Required Portfolio Value at Retirement:")
+        print("\nRequired Portfolio Value at Retirement:")
         print(f"   Using 4.0% withdrawal rate: €{req['required_portfolio_4pct']:,.0f}")
         print(f"   Required CAGR (to reach target): {req['required_cagr_4pct']:.2%}")
 

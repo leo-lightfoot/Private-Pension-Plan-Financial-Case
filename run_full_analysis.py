@@ -35,7 +35,7 @@ def print_header(title):
 
 def load_etf_data():
     """Load and prepare historical ETF return data."""
-    print("📂 Loading historical ETF data...")
+    print("Loading historical ETF data...")
 
     try:
         data = pd.read_csv(DATA_FILES['etf_returns'], encoding='utf-8-sig')

@@ -32,7 +32,7 @@ class IIDAssetPortfolioSimulator:
                 series = returns_data[asset].dropna()
                 self.asset_data[asset] = series
 
-            print(f"✅ Loaded data for {len(self.assets)} assets")
+            print(f"Loaded data for {len(self.assets)} assets")
             print(f"Assets: {', '.join(self.assets)}")
         else:
             # Load from CSV file
@@ -49,7 +49,7 @@ class IIDAssetPortfolioSimulator:
                 series = pd.to_numeric(data[asset], errors='coerce').dropna() / 100
                 self.asset_data[asset] = series
 
-            print(f"✅ Loaded data for {len(self.assets)} assets")
+            print(f"Loaded data for {len(self.assets)} assets")
             print(f"Assets: {', '.join(self.assets)}")
 
         # Tag assets by type - import from config for consistency
@@ -92,7 +92,7 @@ class IIDAssetPortfolioSimulator:
                 mu_daily -= daily_global_drag
 
                 params[asset] = (mu_daily, sigma_daily, w)
-                print(f"📊 {asset}: μ_daily={mu_daily:.5f}, σ_daily={sigma_daily:.5f}, weight={w:.2f}")
+                print(f"{asset}: mu_daily={mu_daily:.5f}, sigma_daily={sigma_daily:.5f}, weight={w:.2f}")
         return params
 
     def simulate_paths(self, allocations, initial_value=250000, years=23, n_sims=1000, 
@@ -101,7 +101,7 @@ class IIDAssetPortfolioSimulator:
         Simulate each asset as i.i.d. Normal (daily), then combine into portfolio.
         stagflation=True applies equity/bond/gold stressed assumptions.
         """
-        print(f"🔄 Starting simulation with {n_sims:,} paths...")
+        print(f"Starting simulation with {n_sims:,} paths...")
         start_time = time.time()
 
         trading_days = SIMULATION['trading_days_per_year']
@@ -129,10 +129,10 @@ class IIDAssetPortfolioSimulator:
                 print(f"   Progress: {sim + 1:,}/{n_sims:,} ({(sim + 1)/n_sims*100:.1f}%)")
         
         end_time = time.time()
-        print(f"✅ Simulation completed in {end_time - start_time:.2f} seconds")
-        print(f"📊 Generated {n_sims:,} simulation paths over {years} years")
+        print(f"Simulation completed in {end_time - start_time:.2f} seconds")
+        print(f"Generated {n_sims:,} simulation paths over {years} years")
         if stagflation:
-            print("⚠️ Stagflation Scenario Applied: Equities ~6%, Bonds ~2%, Gold ~5%")
+            print("Stagflation Scenario Applied: Equities ~6%, Bonds ~2%, Gold ~5%")
         return results
 
     def plot_simulation(self, results, years=23, title="Portfolio Projection", filename="simulation.png"):
@@ -161,7 +161,7 @@ class IIDAssetPortfolioSimulator:
         filepath = filename if os.path.sep in filename else os.path.join(self.output_dir, filename)
         plt.savefig(filepath, dpi=300)
         plt.close()
-        print(f"📁 Projection plot saved to {filepath}")
+        print(f"Projection plot saved to {filepath}")
 
     def plot_annual_return_histogram(self, annual_returns, var_95, filename="annual_returns_hist.png"):
         """Plot histogram of annual returns with VaR cutoff."""
@@ -183,7 +183,7 @@ class IIDAssetPortfolioSimulator:
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         plt.savefig(filepath, dpi=300)
         plt.close()
-        print(f"📁 Annual returns histogram saved to {filepath}")
+        print(f"Annual returns histogram saved to {filepath}")
 
     def print_summary(self, results, initial_value=250000, rf_rate=0.0277, filename="summary.txt"):
         """Print and save summary statistics of the simulation (with annual VaR)."""
@@ -234,7 +234,7 @@ class IIDAssetPortfolioSimulator:
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w") as f:
             f.write(summary_str)
-        print(f"📁 Summary saved to {filepath}")
+        print(f"Summary saved to {filepath}")
 
         # Save annual return histogram in same directory as summary
         histogram_filename = os.path.join(os.path.dirname(filename), "annual_returns_hist.png")

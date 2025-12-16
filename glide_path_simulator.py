@@ -198,8 +198,8 @@ class GlidePathSimulator:
         Returns:
             numpy.ndarray: Array of shape (n_simulations, years)
         """
-        print(f"🔄 Running Monte Carlo simulation with {n_simulations:,} paths...")
-        print(f"   Glide path: Age {self.current_age} → {self.retirement_age}")
+        print(f"Running Monte Carlo simulation with {n_simulations:,} paths...")
+        print(f"   Glide path: Age {self.current_age} -> {self.retirement_age}")
         print(f"   Annual rebalancing enabled")
 
         results = np.zeros((n_simulations, self.years_to_retirement))
@@ -212,7 +212,7 @@ class GlidePathSimulator:
             if n_simulations >= 10000 and (sim + 1) % (n_simulations // 10) == 0:
                 print(f"   Progress: {sim + 1:,}/{n_simulations:,} ({(sim+1)/n_simulations*100:.0f}%)")
 
-        print("✅ Simulation completed!")
+        print("Simulation completed!")
         return results
 
     def apply_capital_gains_tax(self, final_value):
@@ -335,7 +335,7 @@ class GlidePathSimulator:
         filepath = os.path.join(OUTPUT['figures_dir'], filename)
         plt.savefig(filepath, dpi=OUTPUT['figure_dpi'], bbox_inches='tight')
         plt.close()
-        print(f"📊 Simulation plot saved to {filepath}")
+        print(f"Simulation plot saved to {filepath}")
 
     def generate_summary_statistics(self, results):
         """
@@ -374,24 +374,24 @@ class GlidePathSimulator:
         print("GLIDE PATH SIMULATION SUMMARY")
         print("=" * 70)
 
-        print(f"\n📊 Simulation Parameters:")
+        print(f"\nSimulation Parameters:")
         print(f"   Number of paths: {stats['n_simulations']:,}")
         print(f"   Investment horizon: {self.years_to_retirement} years")
         print(f"   Initial investment: €{self.initial_investment:,.0f}")
         print(f"   Rebalancing: Annual")
 
-        print(f"\n💰 Final Portfolio Value (Pre-Tax):")
+        print(f"\nFinal Portfolio Value (Pre-Tax):")
         print(f"   Median: €{stats['median_final']:,.0f}")
         print(f"   Mean: €{stats['mean_final']:,.0f}")
         print(f"   10th percentile: €{stats['p10_final']:,.0f}")
         print(f"   90th percentile: €{stats['p90_final']:,.0f}")
 
-        print(f"\n📈 Returns:")
+        print(f"\nReturns:")
         print(f"   Median CAGR: {stats['median_cagr']:.2%}")
         print(f"   Mean CAGR: {stats['mean_cagr']:.2%}")
         print(f"   Median total growth: {stats['median_final']/self.initial_investment:.2f}x")
 
-        print(f"\n💸 Tax Impact (on Median Outcome):")
+        print(f"\nTax Impact (on Median Outcome):")
         print(f"   Pre-tax value: €{stats['median_final']:,.0f}")
         print(f"   Capital gains tax: €{stats['median_tax_paid']:,.0f}")
         print(f"   After-tax value: €{stats['median_after_tax']:,.0f}")
@@ -404,7 +404,7 @@ def main():
     """Example usage of GlidePathSimulator."""
 
     # Load historical ETF data from canonical path in config
-    print("📂 Loading historical ETF data...")
+    print("Loading historical ETF data...")
     data = pd.read_csv(DATA_FILES['etf_returns'], encoding='utf-8-sig')
     try:
         data['Dates'] = pd.to_datetime(data['Dates'], format=DATA_FILES.get('date_format'), dayfirst=True)
@@ -425,7 +425,7 @@ def main():
     simulator.plot_simulation_results(results)
     simulator.print_summary(results)
 
-    print("\n✅ Glide path simulation completed!")
+    print("\nGlide path simulation completed!")
 
 
 if __name__ == "__main__":

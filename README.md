@@ -2,7 +2,7 @@
 
 A comprehensive Python-based financial analysis tool for retirement planning in Germany, specifically designed for a 45-year-old professional investing €250,000 for retirement at age 68.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Problem Statement](#problem-statement)
@@ -18,7 +18,7 @@ A comprehensive Python-based financial analysis tool for retirement planning in 
 
 ---
 
-## 🎯 Overview
+## Overview
 
 This project provides a complete retirement planning analysis framework that:
 
@@ -31,7 +31,7 @@ This project provides a complete retirement planning analysis framework that:
 
 ---
 
-## 📊 Problem Statement
+## Problem Statement
 
 **Client Profile:**
 - Current Age: 45 years (in 2025)
@@ -54,13 +54,12 @@ This project provides a complete retirement planning analysis framework that:
 
 ---
 
-## ✨ Features
+## Features
 
 ### 1. German Pension Calculator
 - Accurate salary projection using historical salary curve
 - Pension points (Rentenpunkte) calculation
 - Net pension calculation including taxes and PKV
-- Career summary and pension projection reports
 
 ### 2. Retirement Gap Analysis
 - Final net salary calculation with all deductions
@@ -78,7 +77,7 @@ This project provides a complete retirement planning analysis framework that:
 - **Glide Path Strategy**: Dynamic allocation that becomes more conservative with age
   - Age 45-50: 50% equity, 40% bonds, 10% gold
   - Age 66-68: 30% equity, 60% bonds, 10% gold
-- **10,000 Simulation Paths**: Statistical projections of portfolio outcomes
+- **50,000 Simulation Paths**: Statistical projections of portfolio outcomes
 - **Performance Metrics**: CAGR, volatility, percentile outcomes
 
 ### 5. Stress Testing
@@ -94,7 +93,7 @@ This project provides a complete retirement planning analysis framework that:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Private-Pension-Plan-Financial-Case/
@@ -126,7 +125,7 @@ Private-Pension-Plan-Financial-Case/
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 - Python 3.8 or higher
@@ -158,7 +157,7 @@ pip install -r requirements.txt
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### Run Complete Analysis
 
@@ -169,13 +168,13 @@ python run_full_analysis.py
 ```
 
 This will:
-1. ✅ Calculate German statutory pension
-2. ✅ Analyze retirement income gap
-3. ✅ Calculate investment metrics for all ETFs
-4. ✅ Optimize portfolio using Markowitz method
-5. ✅ Run Monte Carlo simulation with glide path
-6. ✅ Perform stress testing (market crash & stagflation)
-7. ✅ Generate comprehensive final report
+1. Calculate German statutory pension
+2. Analyze retirement income gap
+3. Calculate investment metrics for all ETFs
+4. Optimize portfolio using Markowitz method
+5. Run Monte Carlo simulation with glide path
+6. Perform stress testing (market crash & stagflation)
+7. Generate comprehensive final report
 
 **Expected Runtime:** ~2-5 minutes (depending on simulation count)
 
@@ -205,7 +204,7 @@ python stress_tests.py
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 All parameters are centralized in `config_file.py`:
 
@@ -242,8 +241,8 @@ GLIDE_PATH = {
 **Simulation Parameters:**
 ```python
 SIMULATION = {
-    'n_simulations': 10_000,           # Monte Carlo paths
-    'n_simulations_stress': 10_000,    # Stress test paths
+    'n_simulations': 50_000,           # Monte Carlo paths
+    'n_simulations_stress': 50_000,    # Stress test paths
     'trading_days_per_year': 252,
 }
 ```
@@ -259,7 +258,7 @@ TAX_RATES = {
 
 ---
 
-## 🔬 Methodology
+## Methodology
 
 ### 1. German Pension Calculation
 
@@ -326,7 +325,7 @@ Subject to:
 
 ---
 
-## 📈 Output Files
+## Output Files
 
 ### Generated Reports
 
@@ -354,7 +353,7 @@ All outputs are saved to the `results/` directory:
 
 ---
 
-## 🔍 Key Insights & Recommendations
+## Key Insights & Recommendations
 
 The analysis provides answers to:
 
@@ -383,7 +382,7 @@ The analysis provides answers to:
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 - **Python 3.8+** - Core programming language
 - **NumPy** - Numerical computations and array operations
@@ -394,75 +393,4 @@ The analysis provides answers to:
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow PEP 8 style guidelines
-- Add docstrings to all functions
-- Update `config_file.py` for any new parameters (single source of truth)
-- Test changes with `python run_full_analysis.py`
-- Update documentation as needed
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 📧 Contact & Support
-
-For questions, suggestions, or issues:
-- Open an issue on GitHub
-- Review the documentation in individual Python files
-- Check the `Case Files/Problem_Case_Statement.png` for original requirements
-
----
-
-## 🙏 Acknowledgments
-
-- German pension system parameters from official Deutsche Rentenversicherung data
-- ETF historical returns data from Bloomberg/market sources
-- Markowitz Modern Portfolio Theory framework
-- Monte Carlo simulation methodology
-
----
-
-## 📝 Notes
-
-### About __pycache__
-
-Python automatically creates `__pycache__/` directories containing bytecode-compiled versions of your `.py` files (`.pyc` files). This speeds up module loading. The `.gitignore` file excludes these from version control as they are:
-- Automatically regenerated
-- Platform/Python-version specific
-- Not needed in the repository
-
-### Data Requirements
-
-The `data/new_data.csv` file should contain:
-- Date column (DD-MM-YYYY format)
-- Daily returns for each ETF (in percentage format)
-- Minimum 1000 observations per asset for optimization
-
-### Customization
-
-To adapt this analysis for your own situation:
-1. Update `CLIENT` parameters in `config_file.py`
-2. Modify salary history in `SALARY['salary_by_age']`
-3. Adjust glide path allocation in `GLIDE_PATH`
-4. Update ETF data in `data/new_data.csv`
-5. Run `python run_full_analysis.py`
-
----
-
-**Last Updated:** December 2025
+**Last Updated:** December 2024

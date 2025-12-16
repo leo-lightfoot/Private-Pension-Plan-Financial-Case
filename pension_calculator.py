@@ -175,13 +175,13 @@ class GermanPensionCalculator:
         print("=" * 70)
         print("GERMAN STATUTORY PENSION CALCULATION SUMMARY")
         print("=" * 70)
-        print(f"\n📋 Career Overview:")
+        print(f"\nCareer Overview:")
         print(f"   Started working: Age {self.start_age} (Year {self.start_year})")
         print(f"   Current age: {self.current_age} (Year {CLIENT['starting_year']})")
         print(f"   Retirement age: {self.retirement_age} (Year {retirement_year})")
         print(f"   Total career years: {self.retirement_age - self.start_age}")
 
-        print(f"\n💰 Salary Information:")
+        print(f"\nSalary Information:")
         print(f"   Salary anchors (age: salary): {self.salary_by_age}")
         print(f"   Inflation rate: {self.inflation_rate:.1%}")
         current_salary = self.calculate_salary_for_year(CLIENT['starting_year'])
@@ -190,12 +190,12 @@ class GermanPensionCalculator:
         print(f"   Final salary (age {self.retirement_age - 1}): €{retirement_salary:,.0f}")
 
         total_points = self.calculate_total_pension_points(retirement_year)
-        print(f"\n🎯 Pension Points:")
+        print(f"\nPension Points:")
         print(f"   Total accumulated points: {total_points:.2f}")
         avg_points = total_points / (self.retirement_age - self.start_age)
         print(f"   Average points per year: {avg_points:.2f}")
 
-        print(f"\n📊 Pension Calculation:")
+        print(f"\nPension Calculation:")
         print(f"   Pension value (at retirement): €{self.calculate_rentenwert(retirement_year):,.2f} per point")
 
         pension_details = self.calculate_net_pension(retirement_year)

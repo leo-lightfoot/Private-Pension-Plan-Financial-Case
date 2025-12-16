@@ -173,7 +173,7 @@ class PortfolioOptimizer:
         # Check if minimum return is achievable (compare to max asset return)
         max_possible_return = self.mean_returns.max()
         if min_return > max_possible_return:
-            print(f"❌ Minimum return {min_return*100:.1f}% is higher than best single asset return {max_possible_return*100:.1f}%")
+            print(f"Minimum return {min_return*100:.1f}% is higher than best single asset return {max_possible_return*100:.1f}%")
             return None
 
         # Optimize
@@ -198,10 +198,10 @@ class PortfolioOptimizer:
                 'assets': list(self.returns_data.columns)
             }
 
-            print(f"✅ Portfolio optimization completed successfully with {min_return*100:.1f}% minimum return!")
+            print(f"Portfolio optimization completed successfully with {min_return*100:.1f}% minimum return!")
             return self.optimal_portfolio
         else:
-            print(f"❌ Optimization failed! Unable to achieve {min_return*100:.1f}% minimum return.")
+            print(f"Optimization failed! Unable to achieve {min_return*100:.1f}% minimum return.")
             return None
 
     def get_asset_names(self):
@@ -304,7 +304,7 @@ class PortfolioOptimizer:
 
 ---
 
-## 🎯 Optimal Portfolio Summary
+## Optimal Portfolio Summary
 
 | Metric | Value |
 |--------|-------|
@@ -315,11 +315,11 @@ class PortfolioOptimizer:
 
 ---
 
-## 📊 Portfolio Allocation
+## Portfolio Allocation
 
 {allocation_df.to_markdown(index=False)}
 
-### 🔍 Key Allocation Insights
+### Key Allocation Insights
 
 - **Largest Position**: {assets[np.argmax(weights)]} ({weights.max()*100:.1f}%)
 - **Most Diversified**: Portfolio includes {len([w for w in weights if w > 0.05])} major positions (>5%)
@@ -327,21 +327,21 @@ class PortfolioOptimizer:
 
 ---
 
-## 📈 Portfolio Characteristics
+## Portfolio Characteristics
 
-### ✅ **Strengths**
+### Strengths
 - **Optimized Risk-Return**: Portfolio maximizes return per unit of risk
 - **Diversification**: Spread across multiple asset classes
 - **Mathematical Efficiency**: Based on Modern Portfolio Theory
 
-### ⚠️ **Considerations**
+### Considerations
 - **Historical Data**: Based on past performance (not guaranteed future results)
 - **Rebalancing**: May require periodic adjustments
 - **Transaction Costs**: Consider implementation costs
 
 ---
 
-## 🎯 Implementation Guide
+## Implementation Guide
 
 ### **Rebalancing Schedule**
 - **Quarterly Review**: Check for significant drift from target weights
@@ -355,14 +355,14 @@ class PortfolioOptimizer:
 
 ---
 
-## 📊 Visual Analysis
+## Visual Analysis
 
 ### Portfolio Allocation Chart
 ![Optimal Portfolio Weights](optimal_portfolio_weights.png)
 
 ---
 
-## 💡 Investment Notes
+## Investment Notes
 
 This optimal portfolio was constructed using:
 - **Methodology**: Markowitz Mean-Variance Optimization
@@ -395,7 +395,7 @@ def main():
     optimizer = PortfolioOptimizer()  # will use DATA_FILES['etf_returns'] by default
 
     if optimizer.returns_data is None:
-        print("❌ Failed to load data.")
+        print("Failed to load data.")
         return
 
     # Step 2: Optimize portfolio (uses min return from config)
@@ -403,7 +403,7 @@ def main():
     optimal_portfolio = optimizer.optimize_portfolio()
 
     if optimal_portfolio is None:
-        print("❌ Portfolio optimization failed.")
+        print("Portfolio optimization failed.")
         return
 
     # Step 3: Generate visualizations
@@ -419,12 +419,12 @@ def main():
     print("OPTIMIZATION RESULTS")
     print("n="*80)
 
-    print(f"\n🎯 Optimal Portfolio Performance:")
+    print(f"\nOptimal Portfolio Performance:")
     print(f"   Expected Annual Return: {optimal_portfolio['expected_return']*100:.2f}%")
     print(f"   Annual Volatility: {optimal_portfolio['volatility']*100:.2f}%")
     print(f"   Sharpe Ratio: {optimal_portfolio['sharpe_ratio']:.3f}")
 
-    print(f"\n📊 Top Allocations:")
+    print(f"\nTop Allocations:")
     assets = optimizer.get_asset_names()
     weights = optimal_portfolio['weights']
 
@@ -434,10 +434,10 @@ def main():
         if weights[idx] > 0.01:
             print(f"   {i}. {assets[idx]}: {weights[idx]*100:.1f}%")
 
-    print("\n✅ Portfolio optimization completed successfully!")
+    print("\nPortfolio optimization completed successfully!")
     print("\nFiles generated:")
-    print("  • optimal_portfolio_report.md - Complete portfolio analysis")
-    print("  • optimal_portfolio_weights.png - Portfolio allocation chart")
+    print("  - optimal_portfolio_report.md - Complete portfolio analysis")
+    print("  - optimal_portfolio_weights.png - Portfolio allocation chart")
 
 
 if __name__ == "__main__":
