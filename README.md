@@ -13,7 +13,6 @@ A comprehensive Python-based financial analysis tool for retirement planning in 
 - [Configuration](#configuration)
 - [Methodology](#methodology)
 - [Output Files](#output-files)
-- [Website](#website)
 
 ---
 
@@ -353,19 +352,6 @@ All outputs are saved to the `results/` directory:
 - `glide_path_projection.png` - Glide path simulation paths
 - `stress_market_crash.png` - Market crash scenario projection
 - `stress_stagflation.png` - Stagflation scenario projection
-
----
-
-## Website
-
-A static website is available to present the analysis results at [docs/index.html](docs/index.html).
-
-### Setup GitHub Pages
-
-1. Copy figures: `results\figures` → `docs\figures` (manually in File Explorer)
-2. Push to GitHub
-3. Enable GitHub Pages: Settings → Pages → Source: `main` branch, `/docs` folder
-4. Your site will be live at: `https://yourusername.github.io/Private-Pension-Plan-Financial-Case/`
 
 ---
 
