@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Private Pension Plan Financial Case - Retirement planning for a 45-year-old professional investing €250,000 for retirement at age 68">
+    <title>Private Pension Plan Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background-color: #f5f7fa;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2E86AB 0%, #A23B72 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        nav {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #2c3e50;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            background: #2E86AB;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            background: white;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2E86AB;
+            border-bottom: 3px solid #F18F01;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            color: #A23B72;
+            margin: 1.5rem 0 1rem;
+            font-size: 1.4rem;
+        }
+
+        h4 {
+            color: #2E86AB;
+            margin: 1rem 0 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        ul {
+            margin: 1rem 0;
+            padding-left: 2rem;
+            line-height: 1.8;
+        }
+
+        ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card h4 {
+            color: #2E86AB;
+            margin-bottom: 0.5rem;
+        }
+
+        .card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0.5rem 0;
+        }
+
+        .card .label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .image-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .image-caption {
+            margin-top: 0.5rem;
+            color: #7f8c8d;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #2E86AB;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        footer a {
+            color: #F18F01;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+
+            h3 {
+                font-size: 1.3rem;
+            }
+
+            h4 {
+                font-size: 1rem;
+            }
+
+            .card .value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Private Pension Plan Financial Case</h1>
+        <p>Retirement planning for a 45-year-old professional investing €250,000 for retirement at age 68</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#results">Key Results</a></li>
+            <li><a href="#portfolio">Portfolio</a></li>
+            <li><a href="#simulation">Simulation</a></li>
+            <li><a href="#stress">Stress Tests</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section id="overview">
+            <h2>Executive Summary</h2>
+
+            <h3>Client Profile</h3>
+            <div class="info-box">
+                <p><strong>Current Age:</strong> 45 years old (in 2025)</p>
+                <p><strong>Retirement Age:</strong> 68 years (planned retirement in 2048)</p>
+                <p><strong>Career Timeline:</strong> Started working at age 30 in 2010</p>
+                <p><strong>Current Annual Salary:</strong> €81,600 (age 45)</p>
+                <p><strong>Healthcare:</strong> Private health insurance (PKV) with €700/month premium at age 45</p>
+                <p><strong>Initial Investment:</strong> €250,000 lump sum (no additional contributions)</p>
+            </div>
+
+            <h3>Investment Strategy</h3>
+            <div class="info-box">
+                <p><strong>Investment Horizon:</strong> 23 years (2025-2048)</p>
+                <p><strong>Strategy:</strong> Dynamic glide path allocation with annual rebalancing</p>
+                <p><strong>Asset Classes:</strong> Equities (global/infrastructure), Bonds (government/corporate), Gold</p>
+                <p><strong>Rebalancing:</strong> Annual portfolio rebalancing to maintain target allocations</p>
+                <p><strong>Tax Treatment:</strong> German tax system with Teilfreistellung for equity gains</p>
+            </div>
+
+            <h3>Retirement Planning Objective</h3>
+            <div class="info-box">
+                <p><strong>Income Replacement Goal:</strong> 90% of final net salary plus PKV coverage</p>
+                <p><strong>Withdrawal Strategy:</strong> 4% rule for sustainable portfolio drawdown</p>
+                <p><strong>Pension Source:</strong> German statutory pension (Rentenpunkte system) plus private portfolio</p>
+                <p><strong>Longevity Planning:</strong> Portfolio designed to sustain income through age 95</p>
+            </div>
+
+            <h3>Key Findings</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Annual Income Needed</h4>
+                    <div class="value">€73,157</div>
+                    <div class="label">90% of final net salary + PKV</div>
+                </div>
+                <div class="card">
+                    <h4>Statutory Pension</h4>
+                    <div class="value">€46,155</div>
+                    <div class="label">Net annual pension</div>
+                </div>
+                <div class="card">
+                    <h4>Annual Gap</h4>
+                    <div class="value">€27,003</div>
+                    <div class="label">To be covered by portfolio</div>
+                </div>
+                <div class="card">
+                    <h4>Required Portfolio</h4>
+                    <div class="value">€675,000</div>
+                    <div class="label">At retirement (4% rule)</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="results">
+            <h2>Portfolio Projections</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Median Final Value</h4>
+                    <div class="value">€1,416,687</div>
+                    <div class="label">Pre-tax (50th percentile)</div>
+                </div>
+                <div class="card">
+                    <h4>Median CAGR</h4>
+                    <div class="value">7.83%</div>
+                    <div class="label">Compound annual growth rate</div>
+                </div>
+                <div class="card">
+                    <h4>Success Rate</h4>
+                    <div class="value">99.84%</div>
+                    <div class="label">Meeting retirement target</div>
+                </div>
+                <div class="card">
+                    <h4>Conservative Outcome</h4>
+                    <div class="value">€973,167</div>
+                    <div class="label">10th percentile</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="portfolio">
+            <h2>Portfolio Strategy</h2>
+
+            <h3>Glide Path Allocation</h3>
+            <div class="info-box">
+                <p>Dynamic allocation that becomes more conservative over time:</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h4>Age 45-50</h4>
+                    <div class="label">
+                        50% Equities<br>
+                        40% Bonds<br>
+                        10% Gold
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Age 51-60</h4>
+                    <div class="label">
+                        40-45% Equities<br>
+                        45-50% Bonds<br>
+                        10% Gold
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Age 61-68</h4>
+                    <div class="label">
+                        30-35% Equities<br>
+                        55-60% Bonds<br>
+                        10% Gold
+                    </div>
+                </div>
+            </div>
+
+            <h3>Portfolio Allocation at Age 45</h3>
+            <div class="info-box">
+                <p><strong>Overall Asset Class Allocation (Ages 45-50):</strong></p>
+                <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
+                    <li>50% Equities</li>
+                    <li>40% Bonds</li>
+                    <li>10% Gold</li>
+                </ul>
+            </div>
+
+            <div class="image-container">
+                <img src="figures/age_45_portfolio_allocation.png" alt="Portfolio Allocation at Age 45">
+                <div class="image-caption">Initial portfolio allocation at age 45</div>
+            </div>
+
+            <h4>Specific ETF Breakdown</h4>
+
+            <div style="margin: 1.5rem 0;">
+                <p><strong style="color: #2E86AB;">Equities (50% of portfolio):</strong></p>
+                <ul>
+                    <li>Core MSCI World ETF: 40% of total portfolio (€100,000)</li>
+                    <li>Global Infrastructure ETF: 10% of total portfolio (€25,000)</li>
+                </ul>
+
+                <p><strong style="color: #2E86AB;">Bonds (40% of portfolio):</strong></p>
+                <ul>
+                    <li>Core EUR Government Bond: 20% of total portfolio (€50,000)</li>
+                    <li>EUR Core Corporate Bond ETF: 20% of total portfolio (€50,000)</li>
+                </ul>
+
+                <p><strong style="color: #2E86AB;">Gold (10% of portfolio):</strong></p>
+                <ul>
+                    <li>Invesco Physical Gold ETF: 10% of total portfolio (€25,000)</li>
+                </ul>
+            </div>
+
+            <h3>Asset Correlation Analysis</h3>
+            <div class="image-container">
+                <img src="figures/correlation_heatmap.png" alt="Correlation Matrix">
+                <div class="image-caption">Asset correlation matrix for diversification</div>
+            </div>
+
+            <h3>Risk-Return Profile</h3>
+            <div class="image-container">
+                <img src="figures/risk_return_chart.png" alt="Risk-Return Chart">
+                <div class="image-caption">Risk-return characteristics of individual assets</div>
+            </div>
+        </section>
+
+        <section id="simulation">
+            <h2>Monte Carlo Simulation Results</h2>
+            <div class="info-box">
+                <p>50,000 simulation paths over 23 years with dynamic glide path allocation and annual rebalancing.</p>
+            </div>
+
+            <div class="image-container">
+                <img src="figures/glide_path_simulation.png" alt="Monte Carlo Simulation">
+                <div class="image-caption">Portfolio value projections showing median and percentile outcomes</div>
+            </div>
+
+            <h3>Statistical Summary</h3>
+            <div class="info-box">
+                <p><strong>Median Final Value:</strong> €1,416,687 (pre-tax)</p>
+                <p><strong>10th Percentile:</strong> €973,167 | <strong>90th Percentile:</strong> €2,070,807</p>
+                <p><strong>Median CAGR:</strong> 7.83% | <strong>Success Rate:</strong> 99.84%</p>
+            </div>
+        </section>
+
+        <section id="stress">
+            <h2>Stress Testing</h2>
+            <div class="info-box">
+                <p>Portfolio resilience tested under two adverse market scenarios:</p>
+            </div>
+
+            <h3>Market Crash Scenario</h3>
+            <div class="info-box">
+                <p>Additional 0.5% annual drag with 3% equity return reduction</p>
+            </div>
+            <div class="image-container">
+                <img src="figures/stress_market_crash.png" alt="Market Crash Scenario">
+                <div class="image-caption">Portfolio performance under market crash conditions</div>
+            </div>
+
+            <h3>Stagflation Scenario</h3>
+            <div class="info-box">
+                <p>Reduced returns: Equities 6%, Bonds 2%, Gold 5%</p>
+            </div>
+            <div class="image-container">
+                <img src="figures/stress_stagflation.png" alt="Stagflation Scenario">
+                <div class="image-caption">Portfolio performance under stagflation conditions</div>
+            </div>
+        </section>
+
+        <section id="methodology">
+            <h2>Methodology and Documentation</h2>
+             
+                <p>Please refer to the github repository for more details on methodology, documentation and other details.</p>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Private Pension Plan Financial Analysis</p>
+        <p>Built with Python | Powered by Modern Portfolio Theory</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+            Disclaimer: This analysis is for educational purposes only and does not constitute financial advice.
+        </p>
+    </footer>
+</body>
+</html>
